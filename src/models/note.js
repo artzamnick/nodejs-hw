@@ -22,7 +22,9 @@ const noteSchema = new Schema(
   {
     timestamps: true,
     versionKey: false,
-  },
+  }
 );
 
-export const Note = model("note", noteSchema);
+noteSchema.index({ title: "text", content: "text" });
+
+export const Note = model("Note", noteSchema);

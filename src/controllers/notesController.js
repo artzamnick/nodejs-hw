@@ -7,32 +7,29 @@ export const getAllNotes = async (req, res) => {
   const currentPage = Number(page) > 0 ? Number(page) : 1;
   const currentPerPage = Number(perPage) > 0 ? Number(perPage) : 10;
 
-  const filter = {};
+  const query = Note.find();
 
   if (tag) {
-    filter.tag = tag;
+    query.where("tag").equals(tag);
   }
 
   if (search) {
-    filter.$or = [
-      { title: { $regex: search, $options: "i" } },
-      { content: { $regex: search, $options: "i" } },
-    ];
+    query.where({ $text: { $search: search } });
   }
 
-  const totalItems = await Note.countDocuments(filter);
+  const skip = (currentPage - 1) * currentPerPage;
 
-  const notes = await Note.find(filter)
-    .skip((currentPage - 1) * currentPerPage)
-    .limit(currentPerPage)
-    .sort({ createdAt: -1 });
+  const [notes, totalNotes] = await Promise.all([
+    query.clone().skip(skip).limit(currentPerPage),
+    Note.countDocuments(query.getFilter()),
+  ]);
 
-  const totalPages = Math.ceil(totalItems / currentPerPage) || 1;
+  const totalPages = Math.ceil(totalNotes / currentPerPage);
 
   res.status(200).json({
     page: currentPage,
     perPage: currentPerPage,
-    totalItems,
+    totalNotes,
     totalPages,
     notes,
   });
@@ -72,7 +69,7 @@ export const updateNote = async (req, res) => {
   const { noteId } = req.params;
 
   const note = await Note.findByIdAndUpdate(noteId, req.body, {
-    new: true,
+    returnDocument: "after",
     runValidators: true,
   });
 

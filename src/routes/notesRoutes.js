@@ -1,6 +1,4 @@
 import { Router } from "express";
-import createHttpError from "http-errors";
-import mongoose from "mongoose";
 import { celebrate, Segments } from "celebrate";
 
 import {
@@ -14,41 +12,41 @@ import {
 import {
   createNoteSchema,
   updateNoteSchema,
+  noteIdSchema,
+  getAllNotesSchema,
 } from "../validations/notesValidation.js";
 
 const router = Router();
 
-const validateIdParam = (req, res, next) => {
-  const { noteId } = req.params;
+router.get(
+  "/notes",
+  celebrate({ [Segments.QUERY]: getAllNotesSchema }),
+  getAllNotes
+);
 
-  if (!mongoose.Types.ObjectId.isValid(noteId)) {
-    return next(createHttpError(400, "Invalid note id"));
-  }
-
-  next();
-};
-
-router.get("/notes", getAllNotes);
-
-router.get("/notes/:noteId", validateIdParam, getNoteById);
+router.get(
+  "/notes/:noteId",
+  celebrate({ [Segments.PARAMS]: noteIdSchema }),
+  getNoteById
+);
 
 router.post(
   "/notes",
-  celebrate({
-    [Segments.BODY]: createNoteSchema,
-  }),
-  createNote,
+  celebrate({ [Segments.BODY]: createNoteSchema }),
+  createNote
 );
 
 router.patch(
   "/notes/:noteId",
-  validateIdParam,
-  celebrate({
-    [Segments.BODY]: updateNoteSchema,
-  }),
-  updateNote,
+  celebrate({ [Segments.PARAMS]: noteIdSchema }),
+  celebrate({ [Segments.BODY]: updateNoteSchema }),
+  updateNote
 );
 
-router.delete("/notes/:noteId", validateIdParam, deleteNote);
+router.delete(
+  "/notes/:noteId",
+  celebrate({ [Segments.PARAMS]: noteIdSchema }),
+  deleteNote
+);
 
 export default router;
