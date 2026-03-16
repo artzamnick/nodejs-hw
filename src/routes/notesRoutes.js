@@ -1,5 +1,7 @@
 import { Router } from "express";
 import createHttpError from "http-errors";
+import mongoose from "mongoose";
+import { celebrate, Segments } from "celebrate";
 
 import {
   getAllNotes,
@@ -12,17 +14,14 @@ import {
 import {
   createNoteSchema,
   updateNoteSchema,
-  isValidId,
 } from "../validations/notesValidation.js";
-
-import { validateBody } from "../middleware/validateBody.js";
 
 const router = Router();
 
 const validateIdParam = (req, res, next) => {
   const { noteId } = req.params;
 
-  if (!isValidId(noteId)) {
+  if (!mongoose.Types.ObjectId.isValid(noteId)) {
     return next(createHttpError(400, "Invalid note id"));
   }
 
@@ -33,12 +32,20 @@ router.get("/notes", getAllNotes);
 
 router.get("/notes/:noteId", validateIdParam, getNoteById);
 
-router.post("/notes", validateBody(createNoteSchema), createNote);
+router.post(
+  "/notes",
+  celebrate({
+    [Segments.BODY]: createNoteSchema,
+  }),
+  createNote,
+);
 
 router.patch(
   "/notes/:noteId",
   validateIdParam,
-  validateBody(updateNoteSchema),
+  celebrate({
+    [Segments.BODY]: updateNoteSchema,
+  }),
   updateNote,
 );
 
