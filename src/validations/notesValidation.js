@@ -1,4 +1,4 @@
-import Joi from "joi";
+import { Joi } from "celebrate";
 import { TAGS } from "../constants/tags.js";
 
 export const createNoteSchema = Joi.object({
