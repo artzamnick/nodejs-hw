@@ -1,38 +1,26 @@
 import { Router } from "express";
-import { celebrate, Segments } from "celebrate";
+import { celebrate } from "celebrate";
 
 import {
-  registerSchema,
-  loginSchema,
+  registerUserSchema,
+  loginUserSchema,
 } from "../validations/authValidation.js";
 
 import {
-  registerUserController,
-  loginUserController,
-  refreshSessionController,
-  logoutUserController,
+  registerUser,
+  loginUser,
+  refreshUsersSession,
+  logoutUser,
 } from "../controllers/authController.js";
 
 const authRouter = Router();
 
-authRouter.post(
-  "/auth/register",
-  celebrate({
-    [Segments.BODY]: registerSchema,
-  }),
-  registerUserController
-);
+authRouter.post("/auth/register", celebrate(registerUserSchema), registerUser);
 
-authRouter.post(
-  "/auth/login",
-  celebrate({
-    [Segments.BODY]: loginSchema,
-  }),
-  loginUserController
-);
+authRouter.post("/auth/login", celebrate(loginUserSchema), loginUser);
 
-authRouter.post("/auth/refresh", refreshSessionController);
+authRouter.post("/auth/refresh", refreshUsersSession);
 
-authRouter.post("/auth/logout", logoutUserController);
+authRouter.post("/auth/logout", logoutUser);
 
 export default authRouter;

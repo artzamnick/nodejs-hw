@@ -3,12 +3,12 @@ import { Note } from "../models/note.js";
 
 export const getAllNotes = async (req, res) => {
   const { page = 1, perPage = 10, tag, search } = req.query;
-  const userId = req.user.userId;
+  const userId = req.user._id;
 
   const currentPage = Number(page) > 0 ? Number(page) : 1;
   const currentPerPage = Number(perPage) > 0 ? Number(perPage) : 10;
 
-  const filter = { owner: userId };
+  const filter = { userId };
 
   if (tag) {
     filter.tag = tag;
@@ -38,11 +38,11 @@ export const getAllNotes = async (req, res) => {
 
 export const getNoteById = async (req, res) => {
   const { noteId } = req.params;
-  const userId = req.user.userId;
+  const userId = req.user._id;
 
   const note = await Note.findOne({
     _id: noteId,
-    owner: userId,
+    userId,
   });
 
   if (!note) {
@@ -53,11 +53,11 @@ export const getNoteById = async (req, res) => {
 };
 
 export const createNote = async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user._id;
 
   const note = await Note.create({
     ...req.body,
-    owner: userId,
+    userId,
   });
 
   res.status(201).json(note);
@@ -65,11 +65,11 @@ export const createNote = async (req, res) => {
 
 export const deleteNote = async (req, res) => {
   const { noteId } = req.params;
-  const userId = req.user.userId;
+  const userId = req.user._id;
 
   const note = await Note.findOneAndDelete({
     _id: noteId,
-    owner: userId,
+    userId,
   });
 
   if (!note) {
@@ -81,12 +81,12 @@ export const deleteNote = async (req, res) => {
 
 export const updateNote = async (req, res) => {
   const { noteId } = req.params;
-  const userId = req.user.userId;
+  const userId = req.user._id;
 
   const note = await Note.findOneAndUpdate(
     {
       _id: noteId,
-      owner: userId,
+      userId,
     },
     req.body,
     {

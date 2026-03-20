@@ -1,27 +1,16 @@
 import {
-  registerUser,
-  loginUser,
-  refreshUsersSession,
-  logoutUser,
+  registerUser as registerUserService,
+  loginUser as loginUserService,
+  refreshUsersSession as refreshUsersSessionService,
+  logoutUser as logoutUserService,
+  setSessionCookies,
 } from "../services/auth.js";
 
-const setupSession = (res, session) => {
-  res.cookie("sessionId", session._id.toString(), {
-    httpOnly: true,
-    expires: session.refreshTokenValidUntil,
-  });
-
-  res.cookie("refreshToken", session.refreshToken, {
-    httpOnly: true,
-    expires: session.refreshTokenValidUntil,
-  });
-};
-
-export const registerUserController = async (req, res, next) => {
+export const registerUser = async (req, res, next) => {
   try {
-    const { user, session } = await registerUser(req.body);
+    const { user, session } = await registerUserService(req.body);
 
-    setupSession(res, session);
+    setSessionCookies(res, session);
 
     res.status(201).json({
       message: "User registered",
@@ -29,9 +18,8 @@ export const registerUserController = async (req, res, next) => {
         user: {
           id: user._id,
           email: user.email,
-          name: user.name,
+          username: user.username,
         },
-        accessToken: session.accessToken,
       },
     });
   } catch (error) {
@@ -39,20 +27,19 @@ export const registerUserController = async (req, res, next) => {
   }
 };
 
-export const loginUserController = async (req, res, next) => {
+export const loginUser = async (req, res, next) => {
   try {
-    const { user, session } = await loginUser(req.body);
+    const { user, session } = await loginUserService(req.body);
 
-    setupSession(res, session);
+    setSessionCookies(res, session);
 
     res.status(200).json({
       message: "User logged in successfully",
       data: {
-        accessToken: session.accessToken,
         user: {
           id: user._id,
           email: user.email,
-          name: user.name,
+          username: user.username,
         },
       },
     });
@@ -61,16 +48,16 @@ export const loginUserController = async (req, res, next) => {
   }
 };
 
-export const refreshSessionController = async (req, res, next) => {
+export const refreshUsersSession = async (req, res, next) => {
   try {
     const { sessionId, refreshToken } = req.cookies;
 
-    const session = await refreshUsersSession({
+    const session = await refreshUsersSessionService({
       sessionId,
       refreshToken,
     });
 
-    setupSession(res, session);
+    setSessionCookies(res, session);
 
     res.status(200).json({
       message: "Session refreshed",
@@ -83,14 +70,15 @@ export const refreshSessionController = async (req, res, next) => {
   }
 };
 
-export const logoutUserController = async (req, res, next) => {
+export const logoutUser = async (req, res, next) => {
   try {
     const { sessionId } = req.cookies;
 
-    await logoutUser(sessionId);
+    await logoutUserService(sessionId);
 
     res.clearCookie("sessionId");
     res.clearCookie("refreshToken");
+    res.clearCookie("accessToken");
 
     res.status(204).send();
   } catch (error) {
