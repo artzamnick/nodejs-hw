@@ -16,10 +16,13 @@ import {
   updateNoteSchema,
 } from "../validations/notesValidation.js";
 
+import { authenticate } from "../middleware/authenticate.js";
+
 const router = Router();
 
 router.get(
   "/notes",
+  authenticate,
   celebrate({
     [Segments.QUERY]: getAllNotesSchema,
   }),
@@ -28,6 +31,7 @@ router.get(
 
 router.get(
   "/notes/:noteId",
+  authenticate,
   celebrate({
     [Segments.PARAMS]: noteIdSchema,
   }),
@@ -36,6 +40,7 @@ router.get(
 
 router.post(
   "/notes",
+  authenticate,
   celebrate({
     [Segments.BODY]: createNoteSchema,
   }),
@@ -44,6 +49,7 @@ router.post(
 
 router.patch(
   "/notes/:noteId",
+  authenticate,
   celebrate({
     [Segments.PARAMS]: noteIdSchema,
     [Segments.BODY]: updateNoteSchema,
@@ -53,6 +59,7 @@ router.patch(
 
 router.delete(
   "/notes/:noteId",
+  authenticate,
   celebrate({
     [Segments.PARAMS]: noteIdSchema,
   }),
