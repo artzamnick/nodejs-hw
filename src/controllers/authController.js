@@ -12,7 +12,7 @@ export const registerUser = async (req, res, next) => {
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-      throw createHttpError(409, "Email in use");
+      throw createHttpError(400, "Email in use");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -26,16 +26,7 @@ export const registerUser = async (req, res, next) => {
 
     setSessionCookies(res, session);
 
-    res.status(201).json({
-      message: "User registered",
-      data: {
-        user: {
-          id: user._id,
-          email: user.email,
-          username: user.username,
-        },
-      },
-    });
+    res.status(201).json(user);
   } catch (error) {
     next(error);
   }
@@ -63,16 +54,7 @@ export const loginUser = async (req, res, next) => {
 
     setSessionCookies(res, session);
 
-    res.status(200).json({
-      message: "User logged in successfully",
-      data: {
-        user: {
-          id: user._id,
-          email: user.email,
-          username: user.username,
-        },
-      },
-    });
+    res.status(200).json(user);
   } catch (error) {
     next(error);
   }

@@ -22,16 +22,22 @@ export const createSession = async (userId) => {
 export const setSessionCookies = (res, session) => {
   res.cookie("sessionId", session._id.toString(), {
     httpOnly: true,
+    secure: true,
+    sameSite: "none",
     maxAge: ONE_DAY,
   });
 
   res.cookie("refreshToken", session.refreshToken, {
     httpOnly: true,
+    secure: true,
+    sameSite: "none",
     maxAge: ONE_DAY,
   });
 
   res.cookie("accessToken", session.accessToken, {
     httpOnly: true,
+    secure: true,
+    sameSite: "none",
     maxAge: FIFTEEN_MINUTES,
   });
 };
