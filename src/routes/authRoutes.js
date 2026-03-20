@@ -9,7 +9,7 @@ import {
 import {
   registerUser,
   loginUser,
-  refreshUsersSession,
+  refreshUserSession,
   logoutUser,
 } from "../controllers/authController.js";
 
@@ -19,7 +19,7 @@ authRouter.post("/auth/register", celebrate(registerUserSchema), registerUser);
 
 authRouter.post("/auth/login", celebrate(loginUserSchema), loginUser);
 
-authRouter.post("/auth/refresh", refreshUsersSession);
+authRouter.post("/auth/refresh", refreshUserSession);
 
 authRouter.post("/auth/logout", logoutUser);
 

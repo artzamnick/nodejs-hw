@@ -1,14 +1,28 @@
-import {
-  registerUser as registerUserService,
-  loginUser as loginUserService,
-  refreshUsersSession as refreshUsersSessionService,
-  logoutUser as logoutUserService,
-  setSessionCookies,
-} from "../services/auth.js";
+import bcrypt from "bcrypt";
+import createHttpError from "http-errors";
+
+import { User } from "../models/user.js";
+import { Session } from "../models/session.js";
+import { createSession, setSessionCookies } from "../services/auth.js";
 
 export const registerUser = async (req, res, next) => {
   try {
-    const { user, session } = await registerUserService(req.body);
+    const { email, password } = req.body;
+
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      throw createHttpError(409, "Email in use");
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+      email,
+      password: hashedPassword,
+    });
+
+    const session = await createSession(user._id);
 
     setSessionCookies(res, session);
 
@@ -29,7 +43,23 @@ export const registerUser = async (req, res, next) => {
 
 export const loginUser = async (req, res, next) => {
   try {
-    const { user, session } = await loginUserService(req.body);
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      throw createHttpError(401, "Invalid email or password");
+    }
+
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordMatch) {
+      throw createHttpError(401, "Invalid email or password");
+    }
+
+    await Session.deleteOne({ userId: user._id });
+
+    const session = await createSession(user._id);
 
     setSessionCookies(res, session);
 
@@ -48,14 +78,30 @@ export const loginUser = async (req, res, next) => {
   }
 };
 
-export const refreshUsersSession = async (req, res, next) => {
+export const refreshUserSession = async (req, res, next) => {
   try {
     const { sessionId, refreshToken } = req.cookies;
 
-    const session = await refreshUsersSessionService({
-      sessionId,
+    if (!sessionId || !refreshToken) {
+      throw createHttpError(401, "Session not found");
+    }
+
+    const currentSession = await Session.findOne({
+      _id: sessionId,
       refreshToken,
     });
+
+    if (!currentSession) {
+      throw createHttpError(401, "Session not found");
+    }
+
+    if (new Date() > currentSession.refreshTokenValidUntil) {
+      throw createHttpError(401, "Session expired");
+    }
+
+    await Session.deleteOne({ _id: currentSession._id });
+
+    const session = await createSession(currentSession.userId);
 
     setSessionCookies(res, session);
 
@@ -74,7 +120,9 @@ export const logoutUser = async (req, res, next) => {
   try {
     const { sessionId } = req.cookies;
 
-    await logoutUserService(sessionId);
+    if (sessionId) {
+      await Session.deleteOne({ _id: sessionId });
+    }
 
     res.clearCookie("sessionId");
     res.clearCookie("refreshToken");
