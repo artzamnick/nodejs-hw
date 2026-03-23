@@ -17,6 +17,11 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
+    avatar: {
+      type: String,
+      default:
+        "https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg",
+    },
   },
   {
     timestamps: true,
@@ -24,11 +29,10 @@ const userSchema = new Schema(
   }
 );
 
-userSchema.pre("save", function (next) {
+userSchema.pre("save", function () {
   if (!this.username) {
     this.username = this.email;
   }
-  next();
 });
 
 userSchema.methods.toJSON = function () {

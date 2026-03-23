@@ -3,7 +3,12 @@ import createHttpError from "http-errors";
 
 import { User } from "../models/user.js";
 import { Session } from "../models/session.js";
-import { createSession, setSessionCookies } from "../services/auth.js";
+import {
+  createSession,
+  setSessionCookies,
+  requestResetToken,
+  resetPassword,
+} from "../services/auth.js";
 
 export const registerUser = async (req, res, next) => {
   try {
@@ -111,6 +116,34 @@ export const logoutUser = async (req, res, next) => {
     res.clearCookie("accessToken");
 
     res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const requestResetEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    await requestResetToken(email);
+
+    res.status(200).json({
+      message: "Reset password email has been successfully sent.",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetPwd = async (req, res, next) => {
+  try {
+    const { token, password } = req.body;
+
+    await resetPassword(token, password);
+
+    res.status(200).json({
+      message: "Password has been successfully reset.",
+    });
   } catch (error) {
     next(error);
   }
