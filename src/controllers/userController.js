@@ -9,16 +9,20 @@ export const updateAvatar = async (req, res, next) => {
       throw createHttpError(400, "Avatar file is required");
     }
 
-    const result = await saveFileToCloudinary(req.file.buffer, req.user._id);
+    const uploadResult = await saveFileToCloudinary(req.file.buffer, req.user._id);
 
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
-      { avatar: result.secure_url },
+      { avatar: uploadResult.secure_url },
       { new: true }
     );
 
+    if (!updatedUser) {
+      throw createHttpError(404, "User not found!");
+    }
+
     res.status(200).json({
-      message: "Successfully uploaded avatar",
+      message: "Successfully uploaded avatar!",
       data: {
         avatar: updatedUser.avatar,
       },

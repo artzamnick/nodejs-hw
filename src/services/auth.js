@@ -131,7 +131,9 @@ export const requestResetToken = async (email) => {
       email: user.email,
     },
     process.env.JWT_SECRET,
-    { expiresIn: "5m" }
+    {
+      expiresIn: "5m",
+    }
   );
 
   const resetLink = `${process.env.FRONTEND_DOMAIN}/reset-password?token=${resetToken}`;
@@ -152,10 +154,9 @@ export const resetPassword = async (token, newPassword) => {
 
   try {
     payload = jwt.verify(token, process.env.JWT_SECRET);
-  } catch (error) {
-  console.log(error);
-  throw createHttpError(401, "Token is expired or invalid.");
-}
+  } catch {
+    throw createHttpError(401, "Token is expired or invalid.");
+  }
 
   const user = await User.findOne({
     _id: payload.sub,

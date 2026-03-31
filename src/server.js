@@ -1,6 +1,6 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import { errors } from "celebrate";
 
@@ -12,8 +12,6 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import notesRouter from "./routes/notesRoutes.js";
 import authRouter from "./routes/authRoutes.js";
 import userRouter from "./routes/userRoutes.js";
-
-dotenv.config();
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
